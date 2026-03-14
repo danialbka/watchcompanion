@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "movie-companion"
+version = "0.1.0"
+description = "A CLI movie companion that syncs playful AI commentary to VLC playback."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "OpenAI Codex"}]
+dependencies = [
+  "requests>=2.31.0",
+]
+
+[project.scripts]
+movie-companion = "companion.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"

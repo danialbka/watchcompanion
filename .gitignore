@@ -1,0 +1,31 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.egg-info/
+.cache/
+
+# local env / tooling
+.env
+.env.*
+.venv/
+dist/
+build/
+.coverage
+
+# local movie/subtitle assets
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.srt
+*.vtt
+*.ass
+*.ssa
+*.sub
+*.idx
+*:Zone.Identifier
+
+# local scratch logs
+*.log
+tmp_*
