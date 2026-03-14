@@ -15,7 +15,7 @@ class PlaybackError(RuntimeError):
 class PlaybackConfig:
     host: str = "127.0.0.1"
     port: int = 42142
-    timeout_seconds: float = 1.0
+    timeout_seconds: float = 3.0
 
 
 class VLCBridge:

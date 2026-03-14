@@ -23,7 +23,9 @@ class SessionRunner:
     def __init__(self, config: AppConfig, bridge: VLCBridge | None = None, ingestor: ContextIngestor | None = None, speech: SpeechAdapter | None = None) -> None:
         self.config = config
         self.cache = CacheStore(config.cache_dir)
-        self.bridge = bridge or VLCBridge(PlaybackConfig(host=config.vlc_host, port=config.vlc_port))
+        self.bridge = bridge or VLCBridge(
+            PlaybackConfig(host=config.vlc_host, port=config.vlc_port, timeout_seconds=config.vlc_timeout_seconds)
+        )
         self.ingestor = ingestor or ContextIngestor()
         self.speech = speech or NoopSpeechAdapter()
 
@@ -34,6 +36,10 @@ class SessionRunner:
             return SessionArtifacts(commentary=cached.commentary, cached=True)
         provider = ProviderFactory.create(request.provider)
         ingested = self.ingestor.ingest(movie)
+        if self.config.style_profile_name:
+            ingested.metadata["style_profile"] = self.config.style_profile_name
+        if self.config.style_profile_path:
+            ingested.metadata["style_profile_path"] = str(self.config.style_profile_path)
         commentary = CommentaryPlanner(provider=provider, density="medium").build_plan(
             movie=movie,
             transcript_chunks=ingested.transcript_chunks,

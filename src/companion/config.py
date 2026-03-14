@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,8 +19,11 @@ class AppConfig:
     provider: str
     persona: str
     voice: str | None
+    style_profile_name: str | None = None
+    style_profile_path: Path | None = None
     vlc_host: str = "127.0.0.1"
     vlc_port: int = 42142
+    vlc_timeout_seconds: float = 3.0
     poll_interval: float = 1.0
     reveal_window_seconds: float = 2.0
     seek_backtrack_seconds: float = 3.0
@@ -46,12 +50,37 @@ class StartRequest:
 
 def load_config(provider: str | None = None, persona: str | None = None, voice: str | None = None) -> AppConfig:
     cache_dir = Path(os.environ.get("MOVIE_COMPANION_CACHE_DIR", Path.home() / ".cache" / "movie-companion"))
+    style_profile_path, style_profile_name, prompt_snippet = load_style_profile()
+    resolved_persona = persona or os.environ.get("MOVIE_COMPANION_PERSONA", DEFAULT_PERSONA)
+    if prompt_snippet and prompt_snippet not in resolved_persona:
+        resolved_persona = f"{resolved_persona}\n\nStyle profile:\n{prompt_snippet}"
     return AppConfig(
         cache_dir=cache_dir,
         provider=provider or os.environ.get("MOVIE_COMPANION_PROVIDER", "dummy"),
-        persona=persona or os.environ.get("MOVIE_COMPANION_PERSONA", DEFAULT_PERSONA),
+        persona=resolved_persona,
         voice=voice or os.environ.get("MOVIE_COMPANION_VOICE"),
+        style_profile_name=style_profile_name,
+        style_profile_path=style_profile_path,
         vlc_host=os.environ.get("MOVIE_COMPANION_VLC_HOST", "127.0.0.1"),
         vlc_port=int(os.environ.get("MOVIE_COMPANION_VLC_PORT", "42142")),
+        vlc_timeout_seconds=float(os.environ.get("MOVIE_COMPANION_VLC_TIMEOUT", "3.0")),
         poll_interval=float(os.environ.get("MOVIE_COMPANION_POLL_INTERVAL", "1.0")),
     )
+
+
+def load_style_profile() -> tuple[Path | None, str | None, str | None]:
+    env_value = os.environ.get("MOVIE_COMPANION_STYLE_PROFILE")
+    candidates: list[Path] = []
+    if env_value:
+        candidates.append(Path(env_value).expanduser())
+    cwd_candidate = Path.cwd() / "profiles" / "danial_whatsapp_style.json"
+    candidates.append(cwd_candidate)
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text())
+        except Exception:
+            continue
+        return path, payload.get("profile_name"), payload.get("prompt_snippet")
+    return None, None, None

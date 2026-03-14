@@ -12,6 +12,8 @@ __pycache__/
 dist/
 build/
 .coverage
+profiles/
+*.local.json
 
 # local movie/subtitle assets
 *.mp4

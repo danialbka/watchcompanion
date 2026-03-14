@@ -69,6 +69,26 @@ def test_parse_comments_json_handles_embedded_json():
     assert comments[0].text == "cute"
 
 
+def test_dummy_provider_uses_more_casual_style_when_profile_present():
+    provider = DummyProvider()
+    movie = MovieIdentity(title="Test Movie", normalized_title="test-movie")
+    comments = provider.generate(
+        type(
+            "Request",
+            (),
+            {
+                "movie": movie,
+                "persona": "warm playful\n\nStyle profile:\nSound like a close funny friend on WhatsApp.",
+                "metadata": {"style_profile": "danial_whatsapp_style"},
+                "transcript_window": [TimedTranscriptChunk(start_seconds=0, end_seconds=5, text="No!", source="x")],
+                "target_count": 1,
+            },
+        )()
+    )
+    assert comments
+    assert "bro we opened on a guy yelling no" in comments[0].text.lower()
+
+
 def test_session_prepare_caches_and_reuses(tmp_path: Path):
     config = load_config(provider="dummy", persona="persona", voice=None)
     config.cache_dir = tmp_path
